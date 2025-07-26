@@ -26,6 +26,136 @@ from utils.preprocessor import LogPreprocessor
 
 load_dotenv()
 
+
+def send_discord_notification(results, analysis_summary=None):
+    """
+    Envia notificação formatada para Discord via webhook.
+    
+    Args:
+        results: Lista com resultados da análise
+        analysis_summary: Resumo opcional da análise
+    """
+    webhook_url = os.getenv('DISCORD_WEBHOOK_URL')
+    if not webhook_url:
+        st.warning("⚠️ DISCORD_WEBHOOK_URL não configurado no .env")
+        return False
+    
+    if not results:
+        return False
+    
+    try:
+        # Conta severidades
+        severity_counts = {}
+        for result in results:
+            severity = result.get('severity', 'UNKNOWN')
+            severity_counts[severity] = severity_counts.get(severity, 0) + 1
+        
+        # Calcula confiança média
+        confidence_scores = [r.get('confidence_score', 0) for r in results if r.get('confidence_score') is not None]
+        avg_confidence = sum(confidence_scores) / len(confidence_scores) if confidence_scores else 0
+        
+        # Emojis para severidades
+        severity_emojis = {
+            'CRITICAL': '🔴',
+            'HIGH': '🟠',
+            'MEDIUM': '🟡',
+            'LOW': '🟢',
+            'UNKNOWN': '⚪'
+        }
+        
+        # Cores para embed (hexadecimal)
+        embed_color = 15158332  # Vermelho para crítico
+        if severity_counts.get('CRITICAL', 0) == 0:
+            if severity_counts.get('HIGH', 0) > 0:
+                embed_color = 16753920  # Laranja para alto
+            elif severity_counts.get('MEDIUM', 0) > 0:
+                embed_color = 16776960  # Amarelo para médio
+            else:
+                embed_color = 5763719   # Verde para baixo
+        
+        # Monta embed principal
+        embed = {
+            "title": "🤖 QA Log Agent - Análise Concluída",
+            "description": f"Análise de logs processada com **{len(results)} erros** encontrados",
+            "color": embed_color,
+            "timestamp": datetime.now().isoformat(),
+            "fields": [
+                {
+                    "name": "📊 Resumo da Análise",
+                    "value": f"**Total de Erros:** {len(results)}\n**Confiança Média:** {avg_confidence:.1%}",
+                    "inline": True
+                }
+            ],
+            "footer": {
+                "text": "QA Log Agent - Edusync",
+                "icon_url": "https://cdn.discordapp.com/attachments/123456789/robot.png"
+            }
+        }
+        
+        # Adiciona campo de severidades se houver erros
+        if severity_counts:
+            severity_text = ""
+            for severity, count in severity_counts.items():
+                emoji = severity_emojis.get(severity, '⚪')
+                severity_text += f"{emoji} **{severity}**: {count}\n"
+            
+            embed["fields"].append({
+                "name": "🎯 Distribuição por Severidade",
+                "value": severity_text.strip(),
+                "inline": True
+            })
+        
+        # Adiciona top 3 erros mais críticos
+        critical_errors = [r for r in results if r.get('severity') in ['CRITICAL', 'HIGH']]
+        critical_errors.sort(key=lambda x: x.get('confidence_score', 0), reverse=True)
+        
+        if critical_errors:
+            top_errors_text = ""
+            for i, error in enumerate(critical_errors[:3], 1):
+                severity_emoji = severity_emojis.get(error.get('severity'), '⚪')
+                error_msg = str(error.get('error_message', 'Erro não especificado'))
+                confidence = error.get('confidence_score', 0)
+                
+                # Trunca mensagem se muito longa
+                if len(error_msg) > 80:
+                    error_msg = error_msg[:80] + "..."
+                
+                top_errors_text += f"{severity_emoji} **{i}.** {error_msg}\n*Confiança: {confidence:.1%}*\n\n"
+            
+            embed["fields"].append({
+                "name": "🚨 Top 3 Erros Prioritários",
+                "value": top_errors_text.strip(),
+                "inline": False
+            })
+        
+        # Adiciona resumo personalizado se fornecido
+        if analysis_summary:
+            embed["fields"].append({
+                "name": "📝 Resumo da Análise",
+                "value": str(analysis_summary)[:1000],  # Limita tamanho
+                "inline": False
+            })
+        
+        # Monta payload para Discord
+        payload = {
+            "embeds": [embed],
+            "username": "QA Log Agent",
+            "avatar_url": "https://cdn.discordapp.com/attachments/123456789/robot.png"
+        }
+        
+        # Envia para Discord
+        response = requests.post(webhook_url, json=payload, timeout=10)
+        response.raise_for_status()
+        
+        return True
+        
+    except requests.exceptions.RequestException as e:
+        st.error(f"❌ Erro ao enviar para Discord: {e}")
+        return False
+    except Exception as e:
+        st.error(f"❌ Erro inesperado ao enviar para Discord: {e}")
+        return False
+
 # Configuração da página
 st.set_page_config(
     page_title="QA Log Agent - Análise Inteligente de Logs",
@@ -498,8 +628,37 @@ def main():
                 
                 if results:
                     st.success(f"✅ Análise concluída! {len(results)} erros analisados.")
+                    
+                    # Envia para Discord se configurado
+                    if send_alerts:
+                        with st.spinner("📤 Enviando notificação para Discord..."):
+                            success = send_discord_notification(
+                                results=results,
+                                analysis_summary=f"Análise automática de logs concluída. {len(results)} erros identificados no arquivo {uploaded_file.name}."
+                            )
+                            if success:
+                                st.success("✅ Notificação enviada para Discord com sucesso!")
+                            else:
+                                st.error("❌ Falha ao enviar notificação para Discord.")
                 else:
                     st.warning("⚠️ Análise concluída, mas nenhum erro foi encontrado no arquivo.")
+                    
+                    # Envia notificação mesmo sem erros se configurado
+                    if send_alerts:
+                        with st.spinner("📤 Enviando notificação para Discord..."):
+                            # Cria um resultado fictício para indicar que não há erros
+                            no_errors_result = [{
+                                'severity': 'INFO',
+                                'error_message': 'Nenhum erro encontrado no arquivo de log',
+                                'confidence_score': 1.0,
+                                'timestamp': datetime.now()
+                            }]
+                            success = send_discord_notification(
+                                results=no_errors_result,
+                                analysis_summary=f"Análise de logs concluída sem erros encontrados no arquivo {uploaded_file.name}. ✅"
+                            )
+                            if success:
+                                st.success("✅ Notificação enviada para Discord com sucesso!")
                 
             except Exception as e:
                 st.error(f"❌ Erro durante análise: {e}")
