@@ -9,18 +9,21 @@ Esta aplicação web permite:
 """
 
 import streamlit as st
-import os
+from dotenv import load_dotenv
 import json
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 from datetime import datetime
 from io import StringIO
+import os
+
 
 # Imports locais
 from agents.log_analyzer import LogAnalyzerAgent
 from utils.preprocessor import LogPreprocessor
 
+load_dotenv()
 
 # Configuração da página
 st.set_page_config(

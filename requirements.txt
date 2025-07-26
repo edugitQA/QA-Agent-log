@@ -1,12 +1,13 @@
 langchain==0.1.0
+langchain_community==0.0.20   # ou a versão compatível com sua langchain
 langgraph==0.0.20
-openai==1.6.1
+openai>=1.8.0                  # melhor compatibilidade com funções da API e streaming
 chromadb==0.4.22
 python-dotenv==1.0.0
 slack_sdk==3.26.2
 streamlit==1.29.0
 tiktoken==0.5.2
 pandas==2.1.4
-numpy==1.24.3
+numpy>=1.25.0                  # para garantir compatibilidade com pandas 2.x
 faiss-cpu==1.7.4
-
+plotly==5.13.0
