@@ -1,0 +1,2 @@
+2024-01-15 10:30:15 ERROR [DatabaseConnection] Connection timeout after 30 seconds to database server db-prod-01:5432
+2024-01-15 10:30:16 ERROR [UserAuthentication] Failed login attempt for user 'admin' from IP 192.168.1.100

@@ -1,5 +1,5 @@
 """
-Interface Streamlit para o Agente IA de Análise de Logs de Erro.
+Interface Streamlit para o Agente IA de Análise de Logs de Erro - VERSÃO CORRIGIDA
 
 Esta aplicação web permite:
 - Upload de arquivos de log
@@ -46,31 +46,100 @@ st.markdown("""
     }
     
     .metric-card {
-        background: #f8fafc;
-        padding: 1rem;
-        border-radius: 8px;
-        border-left: 4px solid #3b82f6;
-        margin: 0.5rem 0;
+        background: #f8fafc !important;
+        background-color: #f8fafc !important;
+        padding: 1.5rem !important;
+        border-radius: 12px !important;
+        border-left: 5px solid #3b82f6 !important;
+        margin: 0.5rem 0 !important;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+        border: 1px solid #e2e8f0 !important;
+        opacity: 1 !important;
+    }
+    
+    .metric-card h3 {
+        color: #1e293b !important;
+        font-size: 1rem !important;
+        font-weight: 600 !important;
+        margin: 0 0 0.5rem 0 !important;
+    }
+    
+    .metric-card h2 {
+        color: #3b82f6 !important;
+        font-size: 2rem !important;
+        font-weight: 700 !important;
+        margin: 0 !important;
     }
     
     .error-card {
-        background: #fef2f2;
-        padding: 1rem;
-        border-radius: 8px;
-        border-left: 4px solid #ef4444;
-        margin: 0.5rem 0;
+        background: #fef2f2 !important;
+        background-color: #fef2f2 !important;
+        padding: 1.5rem !important;
+        border-radius: 12px !important;
+        border-left: 5px solid #ef4444 !important;
+        margin: 0.5rem 0 !important;
+        box-shadow: 0 2px 8px rgba(239,68,68,0.1) !important;
+        border: 1px solid #fecaca !important;
+        opacity: 1 !important;
+    }
+    
+    .error-card h3 {
+        color: #7f1d1d !important;
+        font-size: 1rem !important;
+        font-weight: 600 !important;
+        margin: 0 0 0.5rem 0 !important;
+    }
+    
+    .error-card h2 {
+        color: #ef4444 !important;
+        font-size: 2rem !important;
+        font-weight: 700 !important;
+        margin: 0 !important;
     }
     
     .success-card {
-        background: #f0fdf4;
-        padding: 1rem;
-        border-radius: 8px;
-        border-left: 4px solid #22c55e;
-        margin: 0.5rem 0;
+        background: #f0fdf4 !important;
+        background-color: #f0fdf4 !important;
+        padding: 1.5rem !important;
+        border-radius: 12px !important;
+        border-left: 5px solid #22c55e !important;
+        margin: 0.5rem 0 !important;
+        box-shadow: 0 2px 8px rgba(34,197,94,0.1) !important;
+        border: 1px solid #bbf7d0 !important;
+        opacity: 1 !important;
+    }
+    
+    .success-card h3 {
+        color: #14532d !important;
+        font-size: 1rem !important;
+        font-weight: 600 !important;
+        margin: 0 0 0.5rem 0 !important;
+    }
+    
+    .success-card h2 {
+        color: #22c55e !important;
+        font-size: 2rem !important;
+        font-weight: 700 !important;
+        margin: 0 !important;
     }
     
     .sidebar .sidebar-content {
         background: #1e293b;
+    }
+    
+    /* Fix para garantir que os cards não fiquem transparentes */
+    .stMarkdown > div {
+        opacity: 1 !important;
+    }
+    
+    /* Adiciona transição suave */
+    .metric-card, .error-card, .success-card {
+        transition: all 0.3s ease !important;
+    }
+    
+    .metric-card:hover, .error-card:hover, .success-card:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.15) !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -131,7 +200,8 @@ def display_metrics(results):
         """.format(len(results)), unsafe_allow_html=True)
     
     with col2:
-        critical_count = sum(1 for r in results if r.severity == 'CRITICAL')
+        # CORRIGIDO: Acesso por chave de dicionário
+        critical_count = sum(1 for r in results if r.get('severity') == 'CRITICAL')
         st.markdown("""
         <div class="error-card">
             <h3>🔴 Críticos</h3>
@@ -140,7 +210,8 @@ def display_metrics(results):
         """.format(critical_count), unsafe_allow_html=True)
     
     with col3:
-        high_count = sum(1 for r in results if r.severity == 'HIGH')
+        # CORRIGIDO: Acesso por chave de dicionário
+        high_count = sum(1 for r in results if r.get('severity') == 'HIGH')
         st.markdown("""
         <div class="error-card">
             <h3>🟠 Alta Prioridade</h3>
@@ -149,7 +220,9 @@ def display_metrics(results):
         """.format(high_count), unsafe_allow_html=True)
     
     with col4:
-        avg_confidence = sum(r.confidence_score for r in results) / len(results)
+        # CORRIGIDO: Acesso por chave de dicionário e tratamento de divisão por zero
+        confidence_scores = [r.get('confidence_score', 0) for r in results if r.get('confidence_score') is not None]
+        avg_confidence = sum(confidence_scores) / len(confidence_scores) if confidence_scores else 0
         st.markdown("""
         <div class="success-card">
             <h3>🎯 Confiança Média</h3>
@@ -163,9 +236,11 @@ def display_severity_chart(results):
     if not results:
         return
     
+    # CORRIGIDO: Acesso por chave de dicionário
     severity_counts = {}
     for result in results:
-        severity_counts[result.severity] = severity_counts.get(result.severity, 0) + 1
+        severity = result.get('severity', 'UNKNOWN')
+        severity_counts[severity] = severity_counts.get(severity, 0) + 1
     
     df = pd.DataFrame(list(severity_counts.items()), columns=['Severidade', 'Quantidade'])
     
@@ -174,7 +249,8 @@ def display_severity_chart(results):
         'CRITICAL': '#ef4444',
         'HIGH': '#f97316', 
         'MEDIUM': '#eab308',
-        'LOW': '#22c55e'
+        'LOW': '#22c55e',
+        'UNKNOWN': '#6b7280'
     }
     
     fig = px.pie(df, values='Quantidade', names='Severidade',
@@ -199,13 +275,28 @@ def display_timeline_chart(results):
     # Prepara dados para timeline
     timeline_data = []
     for result in results:
+        # CORRIGIDO: Acesso por chave de dicionário e tratamento de timestamp
+        timestamp = result.get('timestamp')
+        if isinstance(timestamp, str):
+            try:
+                timestamp = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
+            except:
+                timestamp = datetime.now()
+        elif not isinstance(timestamp, datetime):
+            timestamp = datetime.now()
+            
         timeline_data.append({
-            'timestamp': result.timestamp,
-            'severity': result.severity,
-            'message': result.error_message[:50] + "..."
+            'timestamp': timestamp,
+            'severity': result.get('severity', 'UNKNOWN'),
+            'message': str(result.get('error_message', ''))[:50] + "..."
         })
     
     df = pd.DataFrame(timeline_data)
+    
+    # Verifica se há dados para plotar
+    if df.empty:
+        st.info("📊 Não há dados suficientes para o gráfico de timeline.")
+        return
     
     fig = px.scatter(df, x='timestamp', y='severity', 
                      hover_data=['message'],
@@ -215,7 +306,8 @@ def display_timeline_chart(results):
                          'CRITICAL': '#ef4444',
                          'HIGH': '#f97316',
                          'MEDIUM': '#eab308', 
-                         'LOW': '#22c55e'
+                         'LOW': '#22c55e',
+                         'UNKNOWN': '#6b7280'
                      })
     
     fig.update_layout(
@@ -239,9 +331,11 @@ def display_analysis_results(results):
     # Filtros
     col1, col2 = st.columns(2)
     with col1:
+        # CORRIGIDO: Acesso por chave de dicionário
+        severities = list(set(r.get('severity', 'UNKNOWN') for r in results))
         severity_filter = st.selectbox(
             "Filtrar por Severidade:",
-            ["Todos"] + list(set(r.severity for r in results))
+            ["Todos"] + severities
         )
     
     with col2:
@@ -253,46 +347,70 @@ def display_analysis_results(results):
     # Aplica filtros
     filtered_results = results
     if severity_filter != "Todos":
-        filtered_results = [r for r in filtered_results if r.severity == severity_filter]
+        filtered_results = [r for r in filtered_results if r.get('severity') == severity_filter]
     
-    filtered_results = [r for r in filtered_results if r.confidence_score >= confidence_filter]
+    # CORRIGIDO: Acesso por chave de dicionário
+    filtered_results = [r for r in filtered_results if r.get('confidence_score', 0) >= confidence_filter]
     
     # Exibe resultados
     for i, result in enumerate(filtered_results):
-        with st.expander(f"🔍 Erro {i+1}: {result.error_message[:80]}..."):
+        error_message = str(result.get('error_message', 'Mensagem não disponível'))
+        with st.expander(f"🔍 Erro {i+1}: {error_message[:80]}..."):
             
             # Informações básicas
             col1, col2, col3 = st.columns(3)
             with col1:
-                st.metric("Severidade", result.severity)
+                st.metric("Severidade", result.get('severity', 'UNKNOWN'))
             with col2:
-                st.metric("Confiança", f"{result.confidence_score:.1%}")
+                confidence = result.get('confidence_score', 0)
+                st.metric("Confiança", f"{confidence:.1%}")
             with col3:
-                st.metric("Logs Similares", len(result.similar_logs))
+                # CORRIGIDO: Campo similar_logs pode não existir
+                similar_count = len(result.get('similar_logs', []))
+                st.metric("Logs Similares", similar_count)
             
             # Explicação
             st.subheader("💡 Explicação")
-            st.write(result.explanation)
+            explanation = result.get('explanation', 'Explicação não disponível.')
+            st.write(explanation)
             
             # Possíveis causas
             st.subheader("🔍 Possíveis Causas")
-            for j, cause in enumerate(result.possible_causes, 1):
-                st.write(f"{j}. {cause}")
+            possible_causes = result.get('possible_causes', [])
+            if isinstance(possible_causes, list):
+                for j, cause in enumerate(possible_causes, 1):
+                    st.write(f"{j}. {cause}")
+            else:
+                st.write(f"1. {possible_causes}")
             
             # Recomendações
             st.subheader("🛠️ Recomendações")
-            for j, rec in enumerate(result.recommendations, 1):
-                st.write(f"{j}. {rec}")
+            recommendations = result.get('recommendations', [])
+            if isinstance(recommendations, list):
+                for j, rec in enumerate(recommendations, 1):
+                    st.write(f"{j}. {rec}")
+            else:
+                st.write(f"1. {recommendations}")
             
-            # Logs similares
-            if result.similar_logs:
+            # Logs similares (se existirem)
+            similar_logs = result.get('similar_logs', [])
+            if similar_logs:
                 st.subheader("📚 Logs Similares")
-                for j, similar in enumerate(result.similar_logs[:3], 1):
-                    st.text_area(
-                        f"Similar {j} (Score: {similar['similarity_score']:.3f})",
-                        similar['content'][:200] + "...",
-                        height=100
-                    )
+                for j, similar in enumerate(similar_logs[:3], 1):
+                    if isinstance(similar, dict):
+                        similarity_score = similar.get('similarity_score', 0)
+                        content = similar.get('content', 'Conteúdo não disponível')
+                        st.text_area(
+                            f"Similar {j} (Score: {similarity_score:.3f})",
+                            content[:200] + "...",
+                            height=100
+                        )
+                    else:
+                        st.text_area(
+                            f"Similar {j}",
+                            str(similar)[:200] + "...",
+                            height=100
+                        )
 
 
 def main():
@@ -337,24 +455,33 @@ def main():
     # Área principal
     if uploaded_file is not None:
         # Lê conteúdo do arquivo
-        stringio = StringIO(uploaded_file.getvalue().decode("utf-8"))
-        log_content = stringio.read()
-        st.session_state.log_content = log_content
-        
-        # Mostra preview do arquivo
-        with st.expander("👀 Preview do Arquivo"):
-            st.text_area("Conteúdo:", log_content[:1000] + "..." if len(log_content) > 1000 else log_content, height=200)
+        try:
+            stringio = StringIO(uploaded_file.getvalue().decode("utf-8"))
+            log_content = stringio.read()
+            st.session_state.log_content = log_content
+            
+            # Mostra preview do arquivo
+            with st.expander("👀 Preview do Arquivo"):
+                preview_content = log_content[:1000] + "..." if len(log_content) > 1000 else log_content
+                st.text_area("Conteúdo:", preview_content, height=200)
+        except Exception as e:
+            st.error(f"❌ Erro ao ler arquivo: {e}")
     
     # Executa análise
     if analyze_button and uploaded_file is not None:
+        if not st.session_state.log_content:
+            st.error("❌ Nenhum conteúdo de log encontrado. Faça upload de um arquivo válido.")
+            st.stop()
+            
         with st.spinner("🔄 Analisando logs... Isso pode levar alguns minutos."):
             
             # Salva arquivo temporário
             temp_file = f"temp_log_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
-            with open(temp_file, 'w', encoding='utf-8') as f:
-                f.write(st.session_state.log_content)
             
             try:
+                with open(temp_file, 'w', encoding='utf-8') as f:
+                    f.write(st.session_state.log_content)
+                
                 # Inicializa agente
                 agent = setup_agent()
                 if agent is None:
@@ -365,12 +492,17 @@ def main():
                 st.session_state.analysis_results = results
                 
                 # Remove arquivo temporário
-                os.remove(temp_file)
+                if os.path.exists(temp_file):
+                    os.remove(temp_file)
                 
-                st.success(f"✅ Análise concluída! {len(results)} erros analisados.")
+                if results:
+                    st.success(f"✅ Análise concluída! {len(results)} erros analisados.")
+                else:
+                    st.warning("⚠️ Análise concluída, mas nenhum erro foi encontrado no arquivo.")
                 
             except Exception as e:
                 st.error(f"❌ Erro durante análise: {e}")
+                st.exception(e)  # Para debug
                 if os.path.exists(temp_file):
                     os.remove(temp_file)
     
@@ -397,14 +529,36 @@ def main():
         # Prepara dados para download
         report_data = []
         for result in results:
+            # CORRIGIDO: Tratamento seguro de timestamp
+            timestamp = result.get('timestamp')
+            if isinstance(timestamp, str):
+                timestamp_str = timestamp
+            elif isinstance(timestamp, datetime):
+                timestamp_str = timestamp.isoformat()
+            else:
+                timestamp_str = datetime.now().isoformat()
+            
+            # CORRIGIDO: Tratamento seguro de listas
+            possible_causes = result.get('possible_causes', [])
+            if isinstance(possible_causes, list):
+                causes_str = '; '.join(str(cause) for cause in possible_causes)
+            else:
+                causes_str = str(possible_causes)
+            
+            recommendations = result.get('recommendations', [])
+            if isinstance(recommendations, list):
+                recommendations_str = '; '.join(str(rec) for rec in recommendations)
+            else:
+                recommendations_str = str(recommendations)
+            
             report_data.append({
-                'timestamp': result.timestamp.isoformat(),
-                'error_message': result.error_message,
-                'explanation': result.explanation,
-                'severity': result.severity,
-                'confidence_score': result.confidence_score,
-                'possible_causes': '; '.join(result.possible_causes),
-                'recommendations': '; '.join(result.recommendations)
+                'timestamp': timestamp_str,
+                'error_message': str(result.get('error_message', '')),
+                'explanation': str(result.get('explanation', '')),
+                'severity': str(result.get('severity', 'UNKNOWN')),
+                'confidence_score': float(result.get('confidence_score', 0)),
+                'possible_causes': causes_str,
+                'recommendations': recommendations_str
             })
         
         df_report = pd.DataFrame(report_data)
@@ -459,4 +613,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
