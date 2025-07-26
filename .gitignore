@@ -1,0 +1,6 @@
+# Ignorar arquivos sensíveis
+.env
+venv/
+output/
+logs/
+vectorstore/
