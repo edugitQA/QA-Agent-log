@@ -37,7 +37,7 @@ class LogAnalyzerAgent:
     def __init__(self,
                  openai_api_key: str,
                  vectorstore_path: str = "./vectorstore",
-                 model_name: str = "gpt-3.5-turbo"):
+                 model_name: str = "gpt-4o-mini"):
         
         self.openai_api_key = openai_api_key
         self.vectorstore_path = vectorstore_path
@@ -81,8 +81,9 @@ class LogAnalyzerAgent:
         """
         retriever = self.vectorstore.as_retriever(search_kwargs={"k": 3})
         
-        template = """Você é um especialista em análise de logs e SRE.
+        template = """Você é um QA especialista em análise de logs e SRE.
         Sua tarefa é analisar uma mensagem de erro, usando o contexto de logs similares, e retornar uma análise estruturada em JSON.
+        
 
         CONTEXTO (Logs similares do histórico):
         {context}

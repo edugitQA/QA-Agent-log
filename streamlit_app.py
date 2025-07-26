@@ -17,6 +17,7 @@ import plotly.graph_objects as go
 from datetime import datetime
 from io import StringIO
 import os
+import requests
 
 
 # Imports locais
@@ -166,7 +167,7 @@ def setup_agent():
         agent = LogAnalyzerAgent(
             openai_api_key=api_key,
             vectorstore_path="./vectorstore",
-            model_name="gpt-3.5-turbo"
+            model_name="gpt-4o-mini"
         )
         return agent
     except Exception as e:
@@ -434,7 +435,7 @@ def main():
         
         model_choice = st.selectbox(
             "Modelo LLM:",
-            ["gpt-3.5-turbo", "gpt-4", "gpt-4-turbo-preview"]
+            ["gpt-4o-mini", "gpt-4o", "gpt-4-turbo-preview"]
         )
         
         errors_only = st.checkbox(
