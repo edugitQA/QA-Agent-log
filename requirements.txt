@@ -1,0 +1,12 @@
+langchain==0.1.0
+langgraph==0.0.20
+openai==1.6.1
+chromadb==0.4.22
+python-dotenv==1.0.0
+slack_sdk==3.26.2
+streamlit==1.29.0
+tiktoken==0.5.2
+pandas==2.1.4
+numpy==1.24.3
+faiss-cpu==1.7.4
+

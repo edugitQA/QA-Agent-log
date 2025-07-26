@@ -1,0 +1,17 @@
+2024-01-15 10:30:15 ERROR [DatabaseConnection] Connection timeout after 30 seconds to database server db-prod-01:5432
+2024-01-15 10:30:16 ERROR [UserAuthentication] Failed login attempt for user 'admin' from IP 192.168.1.100
+2024-01-15 10:30:17 INFO [UserAuthentication] User 'john.doe' successfully logged in from IP 192.168.1.101
+2024-01-15 10:30:18 ERROR [PaymentProcessor] Credit card validation failed for transaction ID: TXN-2024-001234
+2024-01-15 10:30:19 WARN [MemoryMonitor] Memory usage at 85% - threshold exceeded
+2024-01-15 10:30:20 ERROR [APIGateway] HTTP 500 Internal Server Error on endpoint /api/v1/users/profile
+2024-01-15 10:30:21 ERROR [DatabaseConnection] Connection timeout after 30 seconds to database server db-prod-01:5432
+2024-01-15 10:30:22 ERROR [FileUpload] Failed to upload file 'document.pdf' - disk space insufficient
+2024-01-15 10:30:23 INFO [BackupService] Daily backup completed successfully
+2024-01-15 10:30:24 ERROR [EmailService] SMTP connection failed - unable to send notification email
+2024-01-15 10:30:25 ERROR [UserAuthentication] Failed login attempt for user 'admin' from IP 192.168.1.100
+2024-01-15 10:30:26 CRITICAL [SecurityAlert] Multiple failed login attempts detected from IP 192.168.1.100
+2024-01-15 10:30:27 ERROR [DatabaseConnection] Connection pool exhausted - max connections reached
+2024-01-15 10:30:28 ERROR [PaymentProcessor] Payment gateway timeout for transaction ID: TXN-2024-001235
+2024-01-15 10:30:29 INFO [CacheService] Cache cleared successfully
+2024-01-15 10:30:30 ERROR [APIGateway] Rate limit exceeded for client IP 203.0.113.45
+
